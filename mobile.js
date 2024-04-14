@@ -88,8 +88,26 @@ function init() {
 	// add event listeners
 	// AR mode switch
 	Q3D.E("ar-checkbox").addEventListener("change", function () {
-		if (this.checked) startARMode();
-		else stopARMode();
+		if (this.checked) {
+            // Request permission for device orientation on iOS 13+
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            startARMode();
+                        } else {
+                            this.checked = false;
+                            alert('We need your permission to access device orientation for AR mode.');
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                // Non-iOS devices or iOS versions below 13
+                startARMode();
+            }
+        } else {
+            stopARMode();
+        }
 	});
 
 	// current location button
